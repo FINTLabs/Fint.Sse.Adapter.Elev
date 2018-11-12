@@ -21,7 +21,7 @@ namespace Fint.Sse.Adapter.Services
         public Event<object> VerifyEvent(Event<object> serverSideEvent)
         {
             if (ActionUtils.IsValidStatusAction(serverSideEvent.Action)
-                || ActionUtils.IsValidPwfaAction(serverSideEvent.Action))
+                || ActionUtils.IsValidElevAction(serverSideEvent.Action))
             {
                 serverSideEvent.Status = Status.ADAPTER_ACCEPTED;
             }

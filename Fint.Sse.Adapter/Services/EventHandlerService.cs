@@ -1,7 +1,7 @@
 ﻿using System;
 using Fint.Event.Model;
 using Fint.Event.Model.Health;
-using Fint.Pwfa.Model;
+using FINT.Model.Utdanning.Elev;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -11,20 +11,20 @@ namespace Fint.Sse.Adapter.Services
     {
         private readonly IEventStatusService _statusService;
         private readonly IHttpService _httpService;
-        private readonly IPwfaService _pwfaService;
+        private readonly IElevService _elevService;
         private readonly ILogger<EventHandlerService> _logger;
         private readonly AppSettings _appSettings;
 
         public EventHandlerService(
             IEventStatusService statusService,
             IHttpService httpService,
-            IPwfaService pwfaService,
+            IElevService elevService,
             IOptions<AppSettings> appSettings,
             ILogger<EventHandlerService> logger)
         {
             _statusService = statusService;
             _httpService = httpService;
-            _pwfaService = pwfaService;
+            _elevService = elevService;
             _logger = logger;
             _appSettings = appSettings.Value;
         }
@@ -40,22 +40,31 @@ namespace Fint.Sse.Adapter.Services
                 if (_statusService.VerifyEvent(serverSideEvent).Status == Status.ADAPTER_ACCEPTED)
                 {
                     var action =
-                        (PwfaActions) Enum.Parse(typeof(PwfaActions), serverSideEvent.Action, ignoreCase: true);
+                        (ElevActions) Enum.Parse(typeof(ElevActions), serverSideEvent.Action, ignoreCase: true);
                     var responseEvent = serverSideEvent;
+
+                    responseEvent.Status = Status.ADAPTER_RESPONSE;
 
                     switch (action)
                     {
-                        case PwfaActions.GET_DOG:
-                            _pwfaService.GetDog(serverSideEvent);
+                        case ElevActions.GET_ALL_BASISGRUPPE:
+                            _elevService.GetAllBasisgruppe(serverSideEvent);
                             break;
-                        case PwfaActions.GET_OWNER:
-                            _pwfaService.GetOwner(serverSideEvent);
+                        case ElevActions.GET_ALL_ELEV:
+                            _elevService.GetAllElev(serverSideEvent);
                             break;
-                        case PwfaActions.GET_ALL_DOGS:
-                            _pwfaService.GetAllDogs(serverSideEvent);
+                        case ElevActions.GET_ALL_ELEVFORHOLD:
+                            _elevService.GetAllElevforhold(serverSideEvent);
                             break;
-                        case PwfaActions.GET_ALL_OWNERS:
-                            _pwfaService.GetAllOwners(serverSideEvent);
+                        case ElevActions.GET_ALL_KONTAKTLARERGRUPPE:
+                            _elevService.GetAllKontaktlarergruppe(serverSideEvent);
+                            break;
+                        case ElevActions.GET_ALL_SKOLERESSURS:
+                        case ElevActions.GET_ALL_UNDERVISNINGSFORHOLD:
+                        case ElevActions.GET_ALL_MEDLEMSKAP:
+                            responseEvent.Status = Status.ADAPTER_REJECTED;
+                            responseEvent.ResponseStatus = ResponseStatus.REJECTED;
+                            responseEvent.Message = $"Unsupported action: {action}";
                             break;
                         default:
                             var message = $"Unhandled action: {action}";
@@ -63,7 +72,6 @@ namespace Fint.Sse.Adapter.Services
                             throw new Exception(message);
                     }
 
-                    responseEvent.Status = Status.ADAPTER_RESPONSE;
                     _logger.LogInformation("POST EventResponse");
                     _httpService.Post(_appSettings.ResponseEndpoint, responseEvent);
                 }

@@ -1,16 +1,16 @@
 ﻿using System;
 using Fint.Event.Model;
-using Fint.Pwfa.Model;
+using FINT.Model.Utdanning.Elev;
 
 namespace Fint.Sse.Adapter
 {
     public class ActionUtils
     {
-        public static bool IsValidPwfaAction(string eventAction)
+        public static bool IsValidElevAction(string eventAction)
         {
-            if (Enum.TryParse(eventAction, true, out PwfaActions action))
+            if (Enum.TryParse(eventAction, true, out ElevActions action))
             {
-                if (Enum.IsDefined(typeof(PwfaActions), action))
+                if (Enum.IsDefined(typeof(ElevActions), action))
                 {
                     return true;
                 }

@@ -62,7 +62,7 @@ namespace Fint.Sse.Adapter.Console
             serviceCollection.AddTransient<IEventHandlerService, EventHandlerService>();
             serviceCollection.AddTransient<IEventHandler, FintEventHandler>();
             serviceCollection.AddSingleton<IFintEventListener, FintEventListener>();
-            serviceCollection.AddTransient<IPwfaService, PwfaService>();
+            serviceCollection.AddTransient<IElevService, ElevService>();
 
             // add app
             serviceCollection.AddTransient<SseApplication>();
